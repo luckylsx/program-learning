@@ -64,6 +64,25 @@ s1 =  [5 6 100]
 arr =  [0 1 2 3 4 5 6 100 8]
 ```
 
+- 添加元素时如果超越了cap ,系统会重新分配更大的底层数组
+- 由于值传递的关系，必须接收append 的返回值
+
+```
+// copy slice
+copy(变量, srcSlice)
+
+// delete s[2]
+s = append(s[:1], s[2:]...)
+
+// popping from front
+front := s[0]
+s = s[1:]
+
+// popping from back
+tail := s[len(s)-1]
+s = s[:len(s)-1]
+```
+
 ### 3. 切片和数组的区别?
 
 1. 声明数组时，方括号内写明了数组的长度或者...,声明slice时候，方括号内为空
