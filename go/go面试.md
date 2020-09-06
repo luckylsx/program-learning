@@ -287,3 +287,24 @@ func (s *Set) Add(item inter) {
 	s.m[item] = true
 }
 ```
+
+#### 11. 下面程序 分别注释掉1 和 2 输出什么？
+
+```
+a := [2]int{2, 3}
+b := [2]int{2, 3}
+
+// 1
+if a == b {
+	fmt.Println("equal")
+} else {
+	fmt.Println("not equal")
+}
+
+// 2
+if a[:] == b[:] {
+	fmt.Println("equal")
+} else {
+	fmt.Println("not equal")
+}
+```
