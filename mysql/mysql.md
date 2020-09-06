@@ -352,3 +352,159 @@ KEY分区 ：上面Hash模式的一种延伸，这里的Hash Key是MySQL系统�
  并不会把全部字段取出来，而是专门做了优化，不取值。count(*) 肯定不是 null，按行累加。
 
 按照效率排序的话，count(字段) < count(主键 id) < count(1) ≈ count(*) 所以我建议你，尽量使用 count(*)。
+
+### 37. 什么是SQL？
+
+结构化查询语言(Structured Query Language)简称SQL，是一种数据库查询语言。
+
+作用：用于存取数据、查询、更新和管理关系数据库系统。
+
+### 38.  什么是MySQL?
+
+MySQL是一个关系型数据库管理系统，由瑞典MySQL AB 公司开发，属于 Oracle 旗下产品。MySQL 是最流行的关系型数据库管理系统之一，在 WEB 应用方面，MySQL是最好的 RDBMS (Relational Database Management System，关系数据库管理系统) 应用软件之一。在Java企业级开发中非常常用，因为 MySQL 是开源免费的，并且方便扩展。
+
+### 39. mysql有关权限的表都有哪几个?
+
+MySQL服务器通过权限表来控制用户对数据库的访问，权限表存放在mysql数据库里，由mysql_install_db脚本初始化。这些权限表分别user，db，table_priv，columns_priv和host。下面分别介绍一下这些表的结构和内容：
+
+- user权限表：记录允许连接到服务器的用户帐号信息，里面的权限是全局级的。
+- db权限表：记录各个帐号在各个数据库上的操作权限。
+- table_priv权限表：记录数据表级的操作权限。
+- columns_priv权限表：记录数据列级的操作权限。
+- host权限表：配合db权限表对给定主机上数据库级操作权限作更细致的控制。这个权限表不受GRANT和REVOKE语句的影响。
+
+### 40.  InnoDB引擎的4大特性？
+
+- 插入缓冲（insert buffer)
+- 二次写(double write)
+- 自适应哈希索引(ahi)
+- 预读(read ahead)
+
+### 41 mysql 如何创建用户？
+
+#### 创建用户：
+```
+create user 'ua'@'%' identified by 'pa';
+```
+
+这条命令做了两个动作：
+
+- 磁盘上，往 mysql.user 表里插入一行，由于没有指定权限，所以这行数据上所有表示权限的字段的值都是 N；
+- 内存里，往数组 acl_users 里插入一个 acl_user 对象，这个对象的 access 字段值为 0。
+
+#### 全局权限
+```
+grant all privileges on *.* to 'ua'@'%' with grant option;
+```
+
+这个 grant 命令做了两个动作：
+
+- 磁盘上，将 mysql.user 表里，用户’ua’@’%'这一行的所有表示权限的字段的值都修改为‘Y’；
+- 内存里，从数组 acl_users 中找到这个用户对应的对象，将 access 值（权限位）修改为二进制的“全 1”。
+
+基于上面的分析我们可以知道：
+
+- grant 命令对于全局权限，同时更新了磁盘和内存。命令完成后即时生效，接下来新创建的连接会使用新的权限。
+- 对于一个已经存在的连接，它的全局权限不受 grant 命令的影响。
+
+#### 回收权限
+```
+revoke all privileges on *.* from 'ua'@'%';
+```
+
+这条 revoke 命令的用法与 grant 类似，做了如下两个动作：
+
+- 磁盘上，将 mysql.user 表里，用户’ua’@’%'这一行的所有表示权限的字段的值都修改为“N”；
+- 内存里，从数组 acl_users 中找到这个用户对应的对象，将 access 的值修改为 0。
+
+#### db 权限
+```
+grant all privileges on db1.* to 'ua'@'%' with grant option;
+```
+
+这条 grant 命令做了如下两个动作：
+
+- 磁盘上，往 mysql.db 表中插入了一行记录，所有权限位字段设置为“Y”；
+- 内存里，增加一个对象到数组 acl_dbs 中，这个对象的权限位为“全 1”。
+
+#### 删除用户：
+```
+drop user 'ua'@'%';
+```
+
+delete就是不规范操作
+
+### 42. 索引的创建和删除
+
+#### 创建索引的三种方式，删除索引?
+
+- 第一种方式：在执行CREATE TABLE时创建索引
+```
+CREATE TABLE user_index2 (
+	id INT auto_increment PRIMARY KEY,
+	first_name VARCHAR (16),
+	last_name VARCHAR (16),
+	id_card VARCHAR (18),
+	information text,
+	KEY name (first_name, last_name),
+	FULLTEXT KEY (information),
+	UNIQUE KEY (id_card)
+);
+```
+- 第二种方式：使用ALTER TABLE命令去增加索引
+```
+ALTER TABLE table_name ADD INDEX index_name (column_list);
+```
+ALTER TABLE用来创建普通索引、UNIQUE索引或PRIMARY KEY索引。
+- 使用CREATE INDEX命令创建
+```
+CREATE INDEX index_name ON table_name (column_list);
+```
+
+#### 删除索引？
+
+根据索引名删除普通索引、唯一索引、全文索引：alter table 表名 drop KEY 索引名
+
+```
+alter table user_index drop KEY name;
+alter table user_index drop KEY id_card;
+alter table user_index drop KEY information;
+```
+
+删除主键索引：alter table 表名 drop primary key（因为主键只有一个）
+
+### 43. 百万级别或以上的数据如何删除?
+- 所以我们想要删除百万数据的时候可以先删除索引（此时大概耗时三分多钟）
+- 然后删除其中无用数据（此过程需要不到两分钟）
+- 删除完成后重新创建索引(此时数据较少了)创建索引也非常快，约十分钟左右。
+- 与之前的直接删除绝对是要快速很多，更别说万一删除中断,一切删除会回滚。那更是坑了。
+
+### 44. 什么是死锁？怎么解决？
+
+死锁是指两个或多个事务在同一资源上相互占用，并请求锁定对方的资源，从而导致恶性循环的现象。
+
+常见的解决死锁的方法
+- 如果不同程序会并发存取多个表，尽量约定以相同的顺序访问表，可以大大降低死锁机会。
+- 在同一个事务中，尽可能做到一次锁定所需要的所有资源，减少死锁产生概率；
+- 对于非常容易产生死锁的业务部分，可以尝试使用升级锁定颗粒度，通过表级锁定来减少死锁产生的概率；
+
+### 45. SQL语句主要分为哪几类?
+
+- 数据定义语言DDL（Data Ddefinition Language）CREATE，DROP，ALTER
+
+主要为以上操作 即对逻辑结构等有操作的，其中包括表结构，视图和索引。
+
+- 数据查询语言DQL（Data Query Language）SELECT
+
+这个较为好理解 即查询操作，以select关键字。各种简单查询，连接查询等 都属于DQL。
+
+- 数据操纵语言DML（Data Manipulation Language）INSERT，UPDATE，DELETE
+
+主要为以上操作 即对数据进行操作的，对应上面所说的查询操作 DQL与DML共同构建了多数初级程序员常用的增删改查操作。而查询是较为特殊的一种 被划分到DQL中。
+
+- 数据控制功能DCL（Data Control Language）GRANT，REVOKE，COMMIT，ROLLBACK
+
+主要为以上操作 即对数据库安全性完整性等有操作的，可以简单的理解为权限控制等。
+
+
+[其他面试题](https://zhuanlan.zhihu.com/p/114993399)
