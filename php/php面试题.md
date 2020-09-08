@@ -265,6 +265,13 @@ TCP滑动窗口分为接受窗口，发送窗口
 
 因为当Server端收到Client端的SYN连接请求报文后，可以直接发送SYN+ACK报文。其中ACK报文是用来应答的，SYN报文是用来同步的。但是关闭连接时，当Server端收到FIN报文时，很可能并不会立即关闭SOCKET，所以只能先回复一个ACK报文，告诉Client端，"你发的FIN报文我收到了"。只有等到我Server端所有的报文都发送完了，我才能发送FIN报文，因此不能一起发送。故需要四步握手。
 
+#### 17. rabbitMQ 四种消息类型？
+
+- 1. fanout（订阅）
+- 2. direct（路由）
+- 3. topic（主题）
+- 4. header
+
 
 
 **[其他面试题](https://studygolang.com/articles/17796?spm=a2c6h.12873639.0.0.42156786jfSm5s)** 

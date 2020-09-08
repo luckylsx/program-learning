@@ -627,4 +627,26 @@ No tables used：Query语句中使用from dual 或不含任何from子句
 - EXPALIN只能解释SELECT操作，其他操作要重写为SELECT后查看执行计划。
 
 
+### 47. mysql 为什么是最左匹配原则？
+
+b+数是按照从左到右的顺序来建立搜索树的，比如当(张三,20,F)这样的数据来检索的时候，b+树会优先比较name来确定下一步的所搜方向，如果name相同再依次比较age和sex，最后得到检索的数据；但当(20,F)这样的没有name的数据来的时候，b+树就不知道下一步该查哪个节点，因为建立搜索树的时候name就是第一个比较因子，必须要先根据name来搜索才能知道下一步去哪里查询。
+
+索引 ：
+
+alter table `users` add INDEX `union_index` (`col1`,`col2`,`col3`);
+
+联合索引 union_index 实际建立了(col1)、(col1,col2)、(col,col2,col3)三个索引。
+
+select * from users where col1='a' and col2='b' and col4='d'; 可以用到索引
+
+select * from users where col4='d' and col1='a' and col2='b'; 可以用到索引
+
+select * from users where col1='a' and col2>'b'; 可以用到索引
+
+select * from users where col1>'a' and col2>'b'; 
+
+有时可以用到 有时用不到，看select 的查询字段是否需要回表及mysql 分析器是否觉得走全表扫描比走索引更快
+
+
+
 [其他面试题](https://zhuanlan.zhihu.com/p/114993399)
