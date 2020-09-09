@@ -348,10 +348,10 @@ KEY分区 ：上面Hash模式的一种延伸，这里的Hash Key是MySQL系统�
  运行命令 mysql -u root -p
 
  ### 36 count 时候 如何查询更优？
- count(*) 
- 并不会把全部字段取出来，而是专门做了优化，不取值。count(*) 肯定不是 null，按行累加。
+ count(\*) 
+ 并不会把全部字段取出来，而是专门做了优化，不取值。count(\*) 肯定不是 null，按行累加。
 
-按照效率排序的话，count(字段) < count(主键 id) < count(1) ≈ count(*) 所以我建议你，尽量使用 count(*)。
+按照效率排序的话，count(字段) < count(主键 id) < count(1) ≈ count(\*) 所以我建议你，尽量使用 count(\*)。
 
 ### 37. 什么是SQL？
 
