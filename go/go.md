@@ -308,3 +308,136 @@ if a[:] == b[:] {
 	fmt.Println("not equal")
 }
 ```
+
+#### 12. nsq 相关？
+
+nsqd 
+- HTTP 默认监听 4151
+- tcp 默认监听 4150
+
+nsqlookupd
+
+```
+// nsqd 服务
+nsqd --lookupd-tcp-address=127.0.0.1:4160
+```
+
+```
+// web 后台nsqadmin
+nsqadmin --lookupd-http-address=127.0.0.1:4161
+```
+
+#### 13. go byte 与 rune 的区别？
+
+rune是用来区分字符值和整数值的
+
+
+- byte 等同于int8，即一个字节长度，常用来处理ascii字符
+- rune 等同于int32，即4个字节长度,常用来处理unicode或utf-8字符
+
+```
+str := "你好 world"
+fmt.Printf("len(str):%d\n", len(str)) //返回len(str):12
+fmt.Printf("len(rune(str)):%d\n", len([]rune(str))) //len(rune(str)):8
+```
+
+range 默认使用的是 rune 处理
+```
+str := "你好 world"
+for _,v := range str {
+	fmt.Printf("%c\n", v)
+}
+// output 
+你
+好
+ 
+w
+o
+r
+l
+d
+```
+
+#### 14. go fmt.Printf %v %+v %#v的区别?
+
+- %v    只输出所有的值
+- %+v 先输出字段类型，再输出该字段的值
+- %#v 先输出结构体名字值，再输出结构体（字段类型+字段的值）
+
+```
+a := Student{Name: "test"}
+fmt.Printf("%v\n", a)
+fmt.Printf("%+v\n", a)
+fmt.Printf("%#v\n", a)
+
+// output:
+{test}
+{Name:test}
+main.Student{Name:"test"}
+```
+
+#### 15. go语言 格式化输出fmt.Printf()使用大全?
+
+【打印】
+
+占位符：
+
+[一般]
+
+%v 相应值的默认格式。在打印结构体时，“加号”标记（%+v）会添加字段名
+
+%#v 相应值的 Go 语法表示
+
+%T 相应值的类型的 Go 语法表示
+
+%% 字面上的百分号，并非值的占位符
+
+[布尔]
+
+%t 单词 true 或 false。
+
+[整数]
+
+%b 二进制表示
+
+%c 相应 Unicode 码点所表示的字符
+
+%d 十进制表示
+
+%o 八进制表示
+
+%q 单引号围绕的字符字面值，由 Go 语法安全地转义
+
+%x 十六进制表示，字母形式为小写 a-f
+
+%X 十六进制表示，字母形式为大写 A-F
+
+%U Unicode 格式：U+1234，等同于 “U+%04X”
+
+[浮点数及其复合构成]
+
+%b 无小数部分的，指数为二的幂的科学计数法，与 strconv.FormatFloat 的 ‘b’ 转换格式一致。例如 -123456p-78
+
+%e 科学计数法，例如 -1234.456e+78
+
+%E 科学计数法，例如 -1234.456E+78
+
+%f 有小数点而无指数，例如 123.456
+
+%g 根据情况选择 %e 或 %f 以产生更紧凑的（无末尾的 0）输出
+
+%G 根据情况选择 %E 或 %f 以产生更紧凑的（无末尾的 0）输出
+
+[字符串与字节切片]
+
+%s 字符串或切片的无解译字节
+
+%q 双引号围绕的字符串，由 Go 语法安全地转义
+
+%x 十六进制，小写字母，每字节两个字符
+
+%X 十六进制，大写字母，每字节两个字符
+
+[指针]
+
+%p 十六进制表示，前缀 0x
