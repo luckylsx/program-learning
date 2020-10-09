@@ -321,4 +321,52 @@ Opcache是字节码缓存，PHP在被编译的时候，首先会把php代码转�
 解决方案：验证 HTTP Referer 字段，给用户分配token。
 
 
+#### 21. rabbitmq学习总结 RabbitMQ五种交换机类型，六种队列模式
+
+- 五种交换机？
+1. Direct exchange.
+> a、会根据routingKey 完全匹配成功后才会消费。比如：如果生产一条消息 “我是中国人”，发送到交换机的时候绑定了路由键是：“中国”，则如果要消费的话只有匹配了路由键是“中国”的才能消费。（可以比喻为交换机是 “地球”，路由键是“国家—中国”，消息是“人”，这个消息的身份证是哪个国家的“路由键”那就是只能在这个国家享有权益。）<br>
+b、如果都消费同一个routingKey的话，多个消费者谁先消费到就是谁的
+
+2. Topic exchange.
+> a、该模式不仅仅需要exchange和queue绑定还需要和路由键routingKey关联.<br>
+b、模糊匹配模式，比如：两个路由键 animal.dog ， animal.dog.eat。如果该队列不仅仅对“dog”的消息感兴趣，同时还对与“dog”相关的消息感兴趣就可以使用topic模式，animal.dog.# 。（支持# 0或多词模糊匹配，*一个词匹配）<br>
+应用：订阅任务，信息分类更新业务
+
+3. Fanout exchange.
+> a、该模式不需要路由键routingKey<br>
+b、该模式只需要将queue和exchange绑定就好。一个exchange可以绑定N多个queue，每一个queue都会得到同样的消息<br>
+c、一个queue可以和多个exchange绑定，消费来自不同的exchange的消息<br>
+d、转发消息最快<br>
+应用：群聊功能、全网消息推送功能
+
+4. Headers exchange.
+>  a、无路由键routingKey的概念<br>
+b、是以 header和message中的消息匹配上才能消费
+
+5. System exchange
+> 其实就是系统默认和direct模式没区别，只不过不需要定义exchange名字而已。
+
+- 二、六种队列模式
+
+1. hello word 模式（单发送，单接收模式）
+2. work模式（工厂模式）
+> 一个发送端，多个接收端，支持持久化durable，公平消费原则basicQos，消息的可靠性ack=true，false<br>
+a、消息队列durable——true持久化
+<br>b、在消费的时候，由channel.basicAck()在消息处理完成后发送消息false确认单条或true批量确认。<br>
+c、使用了channel.basicQos(1)保证在接收端一个消息没有处理完时不会接收另一个消息，即接收端发送了ack后才会接收下一个消息。在这种情况下发送端会尝试把消息发送给下一个空闲的的接收端。
+
+3. Publish/Subscribe
+> 一个生产者发送消息到多个消费者
+
+4. routing模式
+> 发送消息到交换机并且要指定路由key ，消费者需要匹配对路由key才能消费
+
+5. topic模式
+> 发送消息到交换机并和路由key进行绑定，但该路由key支持模糊匹配，是指成为“一类”消息
+
+6. RPC模式
+
+#### 22. [布隆过滤器介绍](http://imhuchao.com/1271.html)
+
 **[其他面试题](https://studygolang.com/articles/17796?spm=a2c6h.12873639.0.0.42156786jfSm5s)** 
