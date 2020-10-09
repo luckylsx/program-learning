@@ -6,6 +6,11 @@
 
 通过互斥锁实现单例
 ```
+type Singleton struct {
+}
+
+var instance *Singleton
+var mutex sync.Mutex
 // get singleton with mutex lock
 func getSingletonWithLock() *Singleton {
 	if singleton == nil {
@@ -20,6 +25,11 @@ func getSingletonWithLock() *Singleton {
 
 通过sync.Once 方是实现单例模式
 ```
+type Singleton struct {
+}
+
+var instance *Singleton
+var once sync.Once
 // get the singleton with sync.Once
 func getSingleton() *Singleton {
 	once.Do(func() {
