@@ -25,7 +25,7 @@ CAP权衡
 
 ### 2. redis 支持的数据类型？
 
-Redis支持五种数据bai类型：string（字符串du），hash（哈希），list（列表），set（集zhi合）及zset(sorted set：有序集合)。
+Redis支持五种数据bai类型：string（字符串），hash（哈希），list（列表），set（集合）及zset(sorted set：有序集合)。
 
 ### 3. redis 最全的面试题 ?
 
