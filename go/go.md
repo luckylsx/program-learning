@@ -141,6 +141,14 @@ golang map 底层是一个散列表，实现map 的过程就是实现散列表�
 
 到这一阶段，所有内存要么是黑色的要么是白色的，清楚所有白色的即可
 
+原理：
+
+首先把所有的对象都放到白色的集合中
+从根节点开始遍历对象，遍历到的白色对象从白色集合中放到灰色集合中
+遍历灰色集合中的对象，把灰色对象引用的白色集合的对象放入到灰色集合中，同时把遍历过的灰色集合中的对象放到黑色的集合中
+循环步骤3，直到灰色集合中没有对象
+步骤4结束后，白色集合中的对象就是不可达对象，也就是垃圾，进行回收
+
 **GC触发条件**
 
 - 内存大小阈值， 内存达到上次gc后的2倍
@@ -451,3 +459,47 @@ main.Student{Name:"test"}
 [指针]
 
 %p 十六进制表示，前缀 0x
+
+### 16. 什么是goroutine ? 
+
+goroutine 是go 语言自身实现和管理的用户级线程，go 语言运行时 会通过调度器将用户线程交给操作系统的系统级线程去处理，当遇到某个I/O 操作时，系统线程会与用户线程分离，系统线程会处理其他用户线程，当I/O操作完成需要恢复时，调度器会调度系统中空闲的系统线程来处理这个用户线程 从而达到并发处理多个协程的目的。
+
+### 17. NSQ介绍
+
+NSQ是Go语言编写的一个开源的实时分布式内存消息队列
+
+**优点：**
+- NSQ提倡分布式和分散的拓扑，没有单点故障，支持容错和高可用性，并提供可靠的消息交付保证
+- NSQ支持横向扩展，没有任何集中式代理。
+- NSQ易于配置和部署，并且内置了管理界面。
+
+**NSQ组件**
+- nsqd
+
+nsqd是一个守护进程，它接收、排队并向客户端发送消息。
+
+- nsqlookupd
+
+nsqlookupd是维护所有nsqd状态、提供服务发现的守护进程
+
+- nsqadmin
+
+一个实时监控集群状态、执行各种管理任务的Web管理平台。启动nsqadmin，指定nsqlookupd地址:
+```
+./nsqadmin -lookupd-http-address=127.0.0.1:4161
+```
+
+
+### 18. go 常用的标准包
+
+- fmt 格式化
+- net 提供了可移植的网络I/O接口，包括TCP/IP、UDP、域名解析和Unix域socket。
+- flag 实现了命令行参数的解析。flag.Var(&flagVal, "name", "help message for flagname")<br>
+flag.Parse()
+- errors 创建错误值的函数 errors.new
+- regexp 正则包 regexp.compile()   .findAll()
+- runtime 提供和go运行时环境的互操作 runtime.Gosched() Gosched使当前go程放弃处理器，以让其它go程运行
+- strings 实现了用于操作字符的简单函数 Split Trim TrimSpace TrimLeft TrimRight HasPrefix Contains ContainsAny
+- time 包提供了时间的显示和测量用的函数 Date, Sleep, Format 格式化时间 '2006-01-02 15:04:05'
+- sync 提供了基本的同步基元 如互斥锁 sync.Once.do Mutex.lock unlock
+- context 协程

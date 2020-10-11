@@ -369,4 +369,13 @@ c、使用了channel.basicQos(1)保证在接收端一个消息没有处理完时
 
 #### 22. [布隆过滤器介绍](http://imhuchao.com/1271.html)
 
+#### 23. 单点登录的实现方案：
+
+1. 利用共享cookie 实现
+> (1). 共享cookie 的方法， 客户端对cookie 进行解析，将token 解析出来,之后的每次请求都将token 带上<br>
+(2). 多个域名共享cookie, 在些客户端的时候设置Cookie 的domain<br>
+(3). 将token 保存在SessionStorage 中，（不依赖cookie就没有跨域问题）
+2. 增加业务sso 登录系统实现
+3. 通过认证中心 oAuth 实现
+
 **[其他面试题](https://studygolang.com/articles/17796?spm=a2c6h.12873639.0.0.42156786jfSm5s)** 
