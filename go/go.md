@@ -235,7 +235,8 @@ methodValue := getValue.MethodByName("ReflectCallFuncHasArgs")
 > 进程是具有一定独立功能的程序关于某个数据集合上的一次运行活动,进程是系统进行资源分配和调度的一个独立单位。每个进程都有自己的独立内存空间，不同进程通过进程间通信来通信。由于进程比较重量，占据独立的内存，所以上下文进程间的切换开销（栈、寄存器、虚拟内存、文件句柄等）比较大，但相对比较稳定安全。
 
 - 线程
-> 线程是进程的一个实体,是CPU调度和分派的基本单位,它是比进程更小的能独立运行的基本单位.线程自己基本上不拥有系统资源,只拥有一点在运行中必不可少的资源(如程序计数器,一组寄存器和栈),但是它可与同属一个进程的其他的线程共享进程所拥有的全部资源。线程间通信主要通过共享内存，上下文切换很快，资源开销较少，但相比进程不够稳定容易丢失数据。
+> 线程是进程的一个实体,是CPU调度和分派的基本单位,它是比进程更小的能独立运行的基本单位.线程自己基本上不拥有系统资源,只拥有一点在运行中必不可少的资源(如程序计数器,一组寄存器和栈),但是它可与同属一个进程的其他的线程共享进程所拥有的全部资源。线程间通信主要通过共享内存，上下文切换很快，资源开销较少，但相比进程不够稳定容易丢失数据。<br>
+同一进程中的多个线程共享代码段(代码和常量)，数据段(全局变量和静态变量)，扩展段(堆存储)。但是每个线程拥有自己的栈段， 寄存器的内容，栈段又叫运行时段，用来存放所有局部变量和临时变量。
 
 - 协程
 > 协程是一种用户态的轻量级线程，协程的调度完全由用户控制。协程拥有自己的寄存器上下文和栈。协程调度切换时，将寄存器上下文和栈保存到其他地方，在切回来的时候，恢复先前保存的寄存器上下文和栈，直接操作栈则基本没有内核切换的开销，可以不加锁的访问全局变量，所以上下文的切换非常快。
@@ -503,3 +504,120 @@ flag.Parse()
 - time 包提供了时间的显示和测量用的函数 Date, Sleep, Format 格式化时间 '2006-01-02 15:04:05'
 - sync 提供了基本的同步基元 如互斥锁 sync.Once.do Mutex.lock unlock
 - context 协程
+
+### 19. golang 中map 是否线程安全？
+
+线程不安全
+
+Go语言中的 map 在并发情况下，只读，只写是线程安全的，同时读写是线程不安全的。
+
+下面来看下并发情况下读写 map 时会出现的问题，代码如下：
+```
+package main
+
+import "fmt"
+
+func main() {
+	m := make(map[int]int)
+
+	go func() {
+		// 不停地对map进行写入
+		for  {
+			m[1] = 1
+		}
+	}()
+
+	go func() {
+		// 不停地对map进行读取
+		for {
+			_ = m[1]
+		}
+	}()
+
+	fmt.Scanln()
+}
+```
+无法运行，报错：
+```
+fatal error: concurrent map read and map write
+```
+
+解决方法：
+1. 加锁，但这样性能并不高
+2. Go语言在 1.9 版本中提供了一种效率较高的并发安全的 sync.Map，sync.Map 和 map 不同，不是以语言原生形态提供，而是在 sync 包下的特殊结构。
+
+sync.Map的使用方法：
+```
+func main()  {
+	var maps sync.Map
+	go func() {
+		for {
+			maps.Store("a", 1)
+		}
+	}()
+	go func() {
+		for {
+			// fmt.Println(maps["a"])
+			if v,ok := maps.Load("a");ok {
+				fmt.Println(v)
+			}
+		}
+	}()
+	time.Sleep(10 * time.Millisecond)
+	fmt.Println("end")
+}
+```
+```
+package main
+
+import (
+	"fmt"
+	"sync"
+)
+
+func main() {
+	var m sync.Map
+	m.Store("bb", 22)
+	m.Store("cc", 33)
+	m.Store("aa", 11)
+	m.Store("dd", 33)
+	m.Store("ee", 11)
+
+	//Load 方法，获得value
+	if v, ok := m.Load("cc");ok{
+		fmt.Printf("Load 方法，获得value   %v: %v\n", v, ok)
+	}
+	m.Delete("cc")
+
+
+	//LoadOrStore方法，获取或者保存
+	// 就是如果key还在，那么就保持原来并返回原来的值，如果key不存在就存储
+	if vv,ok:=m.LoadOrStore("bb", 22);ok{
+		fmt.Println(vv)
+	}else{
+		fmt.Printf("LoadOrStore 方法，获得value   %v: %v\n", vv, ok)
+	}
+
+
+
+	//遍历该map
+	m.Range(func(key, value interface{}) bool {
+		fmt.Printf("[%v]=[%v]\n", key, value)
+		return true
+	})
+}
+```
+
+```
+type Map struct
+func (m *Map) Store(key, value interface{})
+func (m *Map) Load(key interface{}) (value interface{}, ok bool)
+func (m *Map) Range(f func(key, value interface{}) bool)
+func (m *Map) Delete(key interface{})
+```
+
+sync.Map 有以下特性：
+- 无须初始化，直接声明即可。
+- sync.Map 不能使用 map 的方式进行取值和设置等操作，而是使用 sync.Map 的方法进行调用，Store 表示存储，Load 表示获取，Delete 表示删除。
+- 使用 Range 配合一个回调函数进行遍历操作，通过回调函数返回内部遍历出来的值，Range 参数中回调函数的返回值在需要继续迭代遍历时，返回 true，终止迭代遍历时，返回 false。
+- LoadOrStore：参数是一对key：value，如果该key存在且没有被标记删除则返回原先的value（不更新）和true；不存在则store，返回该value 和false
