@@ -621,3 +621,48 @@ sync.Map 有以下特性：
 - sync.Map 不能使用 map 的方式进行取值和设置等操作，而是使用 sync.Map 的方法进行调用，Store 表示存储，Load 表示获取，Delete 表示删除。
 - 使用 Range 配合一个回调函数进行遍历操作，通过回调函数返回内部遍历出来的值，Range 参数中回调函数的返回值在需要继续迭代遍历时，返回 true，终止迭代遍历时，返回 false。
 - LoadOrStore：参数是一对key：value，如果该key存在且没有被标记删除则返回原先的value（不更新）和true；不存在则store，返回该value 和false
+
+### 20. golang中package的4种导入方式?
+
+1. 通用导入方式
+```
+import (
+   "fmt"
+)
+```
+然后我们就可以通过包名调用相应的函数或者变量了
+```
+fmt.Println("Hello World!")
+```
+2. 点import
+点import就是在import 的包前面加个".", 这个导入方式，在使用相应的包的函数或者变量的时候，可以省略包名。
+```
+import (
+   . "fmt"
+)
+```
+然后我们可以不用带包名前缀调用相应包的函数
+```
+Println("Hello World!")
+```
+3. 别名import
+
+有时候可能包的名字很长或者不容易记忆，然后你可以给这个包起个别名（比如短一点啊或者容易记忆啊）
+```
+import (
+  f "fmt"
+)
+```
+然后可以如下使用该包
+```
+f.Println("Hello World!")
+```
+
+4. 下划线import
+当我们import一个包的时候，它里面的所有init()函数都会被执行，但是有时候我们并不真正需要使用这些包，仅仅是希望它里面的init()函数被执行，这个时候，就可以使用下划线import了
+```
+import (
+   "database/sql"
+    _ "github.com/go-sql-driver/mysql"
+)
+```
